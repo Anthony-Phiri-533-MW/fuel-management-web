@@ -3,119 +3,232 @@
 import React, { useState } from 'react';
 import { useMeteredStore } from '@/utils/zStore';
 
-interface TankData {
-  open: number;
-  close: number;
+interface PumpData {
+  meterDifference: number;
 }
 
 interface FormData {
-  petrol: TankData[];
-  diseal: TankData[];
+  petrol: PumpData[];
+  diseal: PumpData[];
+}
+
+interface StockData {
+  petrolClosing: number;
+  disealClosing: number;
+  petrolReceipts: number;
+  disealReceipts: number;
 }
 
 const PumpForm = () => {
   const { petrol, diseal, setPetrol, setDiseal } = useMeteredStore();
+  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [prices, setPrices] = useState({
+    petrol: 0,
+    diseal: 0,
+  });
+  const [stocks, setStocks] = useState<StockData>({
+    petrolClosing: 0,
+    disealClosing: 0,
+    petrolReceipts: 0,
+    disealReceipts: 0
+  });
+  
   const [formData, setFormData] = useState<FormData>({
-    petrol: Array(4).fill({ open: 0, close: 0 }), // 4 tanks for petrol
-    diseal: Array(4).fill({ open: 0, close: 0 }), // 4 tanks for diseal
+    petrol: Array(4).fill({ meterDifference: 0 }),
+    diseal: Array(4).fill({ meterDifference: 0 }),
   });
 
-  // Handle input changes for petrol and diseal tanks
-  const handleInputChange = (
+  const handlePumpChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    fuelType: keyof FormData, // 'petrol' or 'diseal'
-    tankIndex: number, // Index of the tank (0 to 3)
-    field: keyof TankData // 'open' or 'close'
+    fuelType: keyof FormData,
+    pumpIndex: number
   ) => {
-    const value = parseFloat(e.target.value);
-    setFormData((prev) => ({
+    const value = parseFloat(e.target.value) || 0;
+    setFormData(prev => ({
       ...prev,
-      [fuelType]: prev[fuelType].map((tank, index) =>
-        index === tankIndex ? { ...tank, [field]: value } : tank
+      [fuelType]: prev[fuelType].map((pump, idx) => 
+        idx === pumpIndex ? { ...pump, meterDifference: value } : pump
       ),
     }));
   };
 
-  // Calculate the total for a given fuel type
-  const calculateTotal = (fuelType: keyof FormData) => {
-    return formData[fuelType].reduce((total, tank) => total + (tank.open - tank.close), 0);
+  const handleStockChange = (e: React.ChangeEvent<HTMLInputElement>, field: keyof StockData) => {
+    setStocks(prev => ({
+      ...prev,
+      [field]: parseFloat(e.target.value) || 0
+    }));
   };
 
-  // Handle form submission
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>, fuelType: keyof typeof prices) => {
+    setPrices(prev => ({
+      ...prev,
+      [fuelType]: parseFloat(e.target.value) || 0
+    }));
+  };
+
+  const calculateSales = (fuelType: keyof FormData) => {
+    return formData[fuelType].reduce((total, pump) => {
+      return total + (pump.meterDifference * prices[fuelType]);
+    }, 0);
+  };
+
+  const calculateTotalVolume = (fuelType: keyof FormData) => {
+    return formData[fuelType].reduce((total, pump) => {
+      return total + pump.meterDifference;
+    }, 0);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const totalPetrol = calculateTotal('petrol');
-    const totalDiseal = calculateTotal('diseal');
+    const totalPetrol = calculateTotalVolume('petrol');
+    const totalDiseal = calculateTotalVolume('diseal');
     setPetrol(totalPetrol);
     setDiseal(totalDiseal);
   };
 
+  const totalPetrolSales = calculateSales('petrol');
+  const totalDisealSales = calculateSales('diseal');
+
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Metered Readings</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Petrol Tanks */}
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Petrol Tanks</h3>
-          {formData.petrol.map((tank, index) => (
-            <div key={`petrol-tank-${index}`} className="grid grid-cols-3 gap-4 mb-2">
-              <label className="col-span-1">Tank {index + 1}</label>
+    <div className="p-4 max-w-6xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Metered Readings</h2>
+        <div className="flex gap-4">
+          <div>
+            <label className="block text-sm font-medium">Date</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="p-2 border rounded"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Petrol Price</label>
+            <input
+              type="number"
+              value={prices.petrol}
+              onChange={(e) => handlePriceChange(e, 'petrol')}
+              className="p-2 border rounded"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Diseal Price</label>
+            <input
+              type="number"
+              value={prices.diseal}
+              onChange={(e) => handlePriceChange(e, 'diseal')}
+              className="p-2 border rounded"
+            />
+          </div>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Petrol Section */}
+        <div className="flex gap-6">
+          <div className="flex-1 bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-4">Petrol Pumps</h3>
+            <div className="grid grid-cols-4 gap-4 mb-4">
+              {formData.petrol.map((pump, index) => (
+                <div key={`petrol-pump-${index}`}>
+                  <label className="block text-sm font-medium">Pump {index + 1} Diff</label>
+                  <input
+                    type="number"
+                    value={pump.meterDifference}
+                    onChange={(e) => handlePumpChange(e, 'petrol', index)}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="w-64 bg-gray-100 p-4 rounded-lg">
+            <div className="mb-4">
+              <label className="block text-sm font-medium">Petrol Closing Stock</label>
               <input
                 type="number"
-                placeholder="Open"
-                value={tank.open}
-                onChange={(e) => handleInputChange(e, 'petrol', index, 'open')}
-                className="col-span-1 p-2 border rounded"
-              />
-              <input
-                type="number"
-                placeholder="Close"
-                value={tank.close}
-                onChange={(e) => handleInputChange(e, 'petrol', index, 'close')}
-                className="col-span-1 p-2 border rounded"
+                value={stocks.petrolClosing}
+                onChange={(e) => handleStockChange(e, 'petrolClosing')}
+                className="w-full p-2 border rounded mt-1"
               />
             </div>
-          ))}
+            <div>
+              <label className="block text-sm font-medium">Petrol Receipts</label>
+              <input
+                type="number"
+                value={stocks.petrolReceipts}
+                onChange={(e) => handleStockChange(e, 'petrolReceipts')}
+                className="w-full p-2 border rounded mt-1"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Diseal Tanks */}
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Diseal Tanks</h3>
-          {formData.diseal.map((tank, index) => (
-            <div key={`diseal-tank-${index}`} className="grid grid-cols-3 gap-4 mb-2">
-              <label className="col-span-1">Tank {index + 1}</label>
+        {/* Diseal Section */}
+        <div className="flex gap-6">
+          <div className="flex-1 bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-4">Diseal Pumps</h3>
+            <div className="grid grid-cols-4 gap-4 mb-4">
+              {formData.diseal.map((pump, index) => (
+                <div key={`diseal-pump-${index}`}>
+                  <label className="block text-sm font-medium">Pump {index + 1} Diff</label>
+                  <input
+                    type="number"
+                    value={pump.meterDifference}
+                    onChange={(e) => handlePumpChange(e, 'diseal', index)}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="w-64 bg-gray-100 p-4 rounded-lg">
+            <div className="mb-4">
+              <label className="block text-sm font-medium">Diseal Closing Stock</label>
               <input
                 type="number"
-                placeholder="Open"
-                value={tank.open}
-                onChange={(e) => handleInputChange(e, 'diseal', index, 'open')}
-                className="col-span-1 p-2 border rounded"
-              />
-              <input
-                type="number"
-                placeholder="Close"
-                value={tank.close}
-                onChange={(e) => handleInputChange(e, 'diseal', index, 'close')}
-                className="col-span-1 p-2 border rounded"
+                value={stocks.disealClosing}
+                onChange={(e) => handleStockChange(e, 'disealClosing')}
+                className="w-full p-2 border rounded mt-1"
               />
             </div>
-          ))}
+            <div>
+              <label className="block text-sm font-medium">Diseal Receipts</label>
+              <input
+                type="number"
+                value={stocks.disealReceipts}
+                onChange={(e) => handleStockChange(e, 'disealReceipts')}
+                className="w-full p-2 border rounded mt-1"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Sales Summary */}
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-2">Sales Summary</h3>
+          <div className="grid grid-cols-2 gap-8">
+            <div>
+              <p className="text-xl">Petrol Sales: {totalPetrolSales.toFixed(2)}</p>
+              <p>Total Volume: {calculateTotalVolume('petrol')}</p>
+            </div>
+            <div>
+              <p className="text-xl">Diseal Sales: {totalDisealSales.toFixed(2)}</p>
+              <p>Total Volume: {calculateTotalVolume('diseal')}</p>
+            </div>
+          </div>
         </div>
 
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="mt-6 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
         >
-          Update Values
+          Save Readings
         </button>
       </form>
-
-      {/* Display Totals */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold">Current Values</h3>
-        <p className="text-xl">Petrol: {petrol}</p>
-        <p className="text-xl">Diseal: {diseal}</p>
-      </div>
     </div>
   );
 };
