@@ -20,7 +20,8 @@ interface StockData {
 }
 
 const PumpForm = () => {
-  const { petrol, diseal, setPetrol, setDiseal } = useMeteredStore();
+  // const { petrol, diseal, setPetrol, setDiseal } = useMeteredStore();
+  const { setPetrol, setDiseal } = useMeteredStore();
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [prices, setPrices] = useState({
     petrol: 0,
