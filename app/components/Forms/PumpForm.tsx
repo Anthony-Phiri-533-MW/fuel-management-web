@@ -130,7 +130,7 @@ const PumpForm = () => {
         <div className="flex gap-6">
           <div className="flex-1 bg-gray-50 p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Petrol Pumps</h3>
-            <div className="grid grid-cols-4 gap-4 mb-4">
+            <div className="grid grid-cols-1 gap-4 mb-4">
               {formData.petrol.map((pump, index) => (
                 <div key={`petrol-pump-${index}`}>
                   <label className="block text-sm font-medium">Pump {index + 1} Diff</label>
@@ -171,7 +171,7 @@ const PumpForm = () => {
         <div className="flex gap-6">
           <div className="flex-1 bg-gray-50 p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Diseal Pumps</h3>
-            <div className="grid grid-cols-4 gap-4 mb-4">
+            <div className="grid grid-cols-1 gap-4 mb-4">
               {formData.diseal.map((pump, index) => (
                 <div key={`diseal-pump-${index}`}>
                   <label className="block text-sm font-medium">Pump {index + 1} Diff</label>
