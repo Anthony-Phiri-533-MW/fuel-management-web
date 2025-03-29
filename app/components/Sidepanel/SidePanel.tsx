@@ -9,10 +9,7 @@ interface SidePanelProps {
 const SidePanel: React.FC<SidePanelProps> = ({ onSelect }) => {
   const sections = [
     'Metered Readings',
-    'Stocks in Tanks',
-    'Daily Sales Summary',
     'Credit Sales',
-    'Attendance',
     'Report',
   ];
 

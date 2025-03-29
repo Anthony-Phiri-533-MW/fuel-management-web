@@ -2,10 +2,6 @@
 
 import React from 'react';
 import MeteredReadings from '../Sidepanel/MeteredReadings/MeteredReadings';
-import StocksInTanks from '../Sidepanel/StocksInTanks/StocksInTanks';
-import DailySalesSummary from '../Sidepanel/DailySaleSummary/DailySalesSummary';
-import CreditSales from '../Sidepanel/CreditSales/CreditSales';
-import Attendance from '../Sidepanel/Attendance/Attendance';
 import Report from '../Sidepanel/Report/Report';
 
 interface ContentAreaProps {
@@ -16,10 +12,6 @@ const ContentArea: React.FC<ContentAreaProps> = ({ selectedSection }) => {
   // Map the selected section to its corresponding component
   const sectionComponents: { [key: string]: React.FC } = {
     'Metered Readings': MeteredReadings,
-    'Stocks in Tanks': StocksInTanks,
-    'Daily Sales Summary': DailySalesSummary,
-    'Credit Sales': CreditSales,
-    'Attendance': Attendance,
     'Report': Report,
   };
 
