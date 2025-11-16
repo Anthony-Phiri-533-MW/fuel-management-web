@@ -101,7 +101,8 @@ const Report: React.FC = () => {
   const updateDateRange = (type: 'daily' | 'weekly' | 'monthly' | 'yearly') => {
     const today = new Date();
     let start: Date;
-    let end: Date = today;
+    // let end: Date = today;
+    const end: Date = today;
 
     switch (type) {
       case 'daily':
@@ -268,7 +269,7 @@ const Report: React.FC = () => {
 
       {!reportData && (
         <div className="bg-white p-12 rounded-lg shadow-md border border-gray-200 text-center">
-          <p className="text-gray-500">Click "Generate Report" to view your report</p>
+          <p className="text-gray-500">Click &qout;Generate Report&qout; to view your report</p>
         </div>
       )}
     </div>

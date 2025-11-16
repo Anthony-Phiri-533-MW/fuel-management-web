@@ -17,8 +17,13 @@ export async function login(
 ): Promise<AuthActionResult> {
   const supabase = await createClient()
 
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
+  const email = formData.get('email')
+  const password = formData.get('password')
+  
+  // Validate that email and password are strings
+  if (typeof email !== 'string' || typeof password !== 'string') {
+    return { error: 'Invalid form data' }
+  }
 
   // Validate inputs
   if (!email || !password) {
@@ -52,10 +57,10 @@ export async function login(
     // Use server-side redirect - redirect() throws internally which Next.js handles
     // Don't catch redirect errors - let them propagate
     redirect('/dashboard')
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Only catch non-redirect errors
     // Redirect errors have a specific digest we can check
-    if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+    if ((error as { digest?: string })?.digest?.startsWith('NEXT_REDIRECT')) {
       // Re-throw redirect errors so Next.js can handle them
       throw error
     }
@@ -70,8 +75,13 @@ export async function signup(
 ): Promise<AuthActionResult> {
   const supabase = await createClient()
 
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
+  const email = formData.get('email')
+  const password = formData.get('password')
+  
+  // Validate that email and password are strings
+  if (typeof email !== 'string' || typeof password !== 'string') {
+    return { error: 'Invalid form data' }
+  }
 
   // Validate inputs
   if (!email || !password) {

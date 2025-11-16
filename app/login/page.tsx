@@ -35,7 +35,7 @@ function SubmitButton({ children, variant = 'primary' }: { children: React.React
 }
 
 export default function LoginPage() {
-  const [loginState, loginAction, isPending] = useActionState<AuthActionResult, FormData>(login, {})
+  const [loginState, loginAction] = useActionState<AuthActionResult, FormData>(login, {})
 
   const error = loginState?.error
 
