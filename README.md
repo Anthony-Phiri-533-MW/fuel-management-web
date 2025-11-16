@@ -1,8 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fuel Management System
+
+A modern fuel management web application built with Next.js, Supabase, and Prisma.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ 
+- npm, yarn, pnpm, or bun
+- A Supabase project ([create one here](https://supabase.com))
+
+### Environment Setup
+
+1. Copy the environment variables template:
+   ```bash
+   # Create a .env file in the root directory
+   ```
+
+2. Add your Supabase credentials to `.env`:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   DATABASE_URL=your_database_connection_string
+   ```
+
+   Get your Supabase credentials from: https://supabase.com/dashboard/project/_/settings/api
+
+3. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn install
+   # or
+   pnpm install
+   ```
+
+4. Run database migrations (if using Prisma):
+   ```bash
+   npx prisma migrate dev
+   ```
+
+5. Run the development server:
 
 ```bash
 npm run dev

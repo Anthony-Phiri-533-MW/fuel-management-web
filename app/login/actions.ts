@@ -5,42 +5,96 @@ import { redirect } from 'next/navigation'
 
 import { createClient } from '@/utils/supabase/server'
 
-export async function login(formData: FormData) {
-  const supabase = await createClient()
-
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  }
-
-  const { error } = await supabase.auth.signInWithPassword(data)
-
-  if (error) {
-    redirect('/error')
-  }
-
-  revalidatePath('/', 'layout')
-  redirect('/')
+export type AuthActionResult = {
+  error?: string
+  success?: boolean
+  message?: string
 }
 
-export async function signup(formData: FormData) {
+export async function login(
+  prevState: AuthActionResult | undefined,
+  formData: FormData
+): Promise<AuthActionResult> {
   const supabase = await createClient()
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+
+  // Validate inputs
+  if (!email || !password) {
+    return { error: 'Email and password are required' }
   }
 
-  const { error } = await supabase.auth.signUp(data)
+  if (!email.includes('@')) {
+    return { error: 'Please enter a valid email address' }
+  }
+
+  if (password.length < 6) {
+    return { error: 'Password must be at least 6 characters' }
+  }
+
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) {
+      return { error: error.message || 'Failed to sign in. Please check your credentials.' }
+    }
+
+    if (!data.user) {
+      return { error: 'Failed to sign in. Please try again.' }
+    }
+
+    revalidatePath('/', 'layout')
+    revalidatePath('/dashboard', 'layout')
+    // Use server-side redirect - redirect() throws internally which Next.js handles
+    // Don't catch redirect errors - let them propagate
+    redirect('/dashboard')
+  } catch (error: any) {
+    // Only catch non-redirect errors
+    // Redirect errors have a specific digest we can check
+    if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+      // Re-throw redirect errors so Next.js can handle them
+      throw error
+    }
+    console.error('Login error:', error)
+    return { error: 'An unexpected error occurred. Please try again.' }
+  }
+}
+
+export async function signup(
+  prevState: AuthActionResult | undefined,
+  formData: FormData
+): Promise<AuthActionResult> {
+  const supabase = await createClient()
+
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+
+  // Validate inputs
+  if (!email || !password) {
+    return { error: 'Email and password are required' }
+  }
+
+  if (!email.includes('@')) {
+    return { error: 'Please enter a valid email address' }
+  }
+
+  if (password.length < 6) {
+    return { error: 'Password must be at least 6 characters' }
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+  })
 
   if (error) {
-    redirect('/error')
+    return { error: error.message || 'Failed to create account. Please try again.' }
   }
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  return { success: true, message: 'Account created! Please check your email to confirm your account.' }
 }
