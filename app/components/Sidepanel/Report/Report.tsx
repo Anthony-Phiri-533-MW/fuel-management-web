@@ -67,11 +67,44 @@ const Report: React.FC = () => {
     if (!reportRef.current) return;
 
     try {
-      const canvas = await html2canvas(reportRef.current, {
+      // Create a clone of the report with simplified styles for html2canvas compatibility
+      const reportClone = reportRef.current.cloneNode(true) as HTMLElement;
+      reportClone.style.fontFamily = 'monospace';
+      reportClone.style.backgroundColor = '#ffffff';
+      reportClone.style.color = '#000000';
+      
+      // Remove any Tailwind classes that might contain oklch colors
+      const allElements = reportClone.querySelectorAll('*');
+      allElements.forEach(el => {
+        const element = el as HTMLElement;
+        // Set explicit colors to avoid oklch issues
+        if (!element.style.color || element.style.color.includes('oklch')) {
+          element.style.color = '#000000';
+        }
+        if (!element.style.backgroundColor || element.style.backgroundColor.includes('oklch')) {
+          element.style.backgroundColor = '#ffffff';
+        }
+        if (!element.style.borderColor || element.style.borderColor.includes('oklch')) {
+          element.style.borderColor = '#000000';
+        }
+      });
+
+      // Add the clone to the document temporarily
+      document.body.appendChild(reportClone);
+      reportClone.style.position = 'absolute';
+      reportClone.style.left = '-9999px';
+      reportClone.style.top = '-9999px';
+
+      const canvas = await html2canvas(reportClone, {
         backgroundColor: '#ffffff',
         scale: 2,
         logging: false,
+        useCORS: true,
+        allowTaint: true,
       });
+
+      // Remove the clone
+      document.body.removeChild(reportClone);
 
       const link = document.createElement('a');
       link.download = `fuel-report-${reportType}-${startDate}.png`;
